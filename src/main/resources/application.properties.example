@@ -1,0 +1,17 @@
+spring.application.name=DocsWriter
+
+# Kết nối tới PostgreSQL trong Docker
+spring.datasource.url=jdbc:postgresql://localhost:5432/docsWriter
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA / Hibernate
+# tự động tạo và cập nhật bảng theo entity
+spring.jpa.hibernate.ddl-auto=update
+# chỉ định dialect cho PostgreSQL: gth loại db cho Hibernate
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+# hiển thị câu lệnh SQL trong console
+spring.jpa.show-sql=true
+# định dạng câu lệnh SQL hiển thị
+spring.jpa.properties.hibernate.format_sql=true

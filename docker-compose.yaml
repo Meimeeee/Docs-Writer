@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: docs-writer-postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: docsWriter
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: Admin@123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

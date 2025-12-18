@@ -16,6 +16,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.boot.model.relational.QualifiedNameParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -53,9 +54,18 @@ public class AuthService {
             });
         }
 
-        AccountEntity account = AccountEntity.builder().email(requestDTO.getEmail()).username(requestDTO.getUsername()).password(passwordEncoder.encode(requestDTO.getPass())).build();
+        AccountEntity account = AccountEntity.builder()
+                .email(requestDTO.getEmail())
+                .username(requestDTO.getUsername())
+                .password(passwordEncoder.encode(requestDTO.getPass()))
+                .active(true)
+                .build();
 
-        ProfileEntity profile = ProfileEntity.builder().fullName(requestDTO.getFullName()).account(account).build();
+        ProfileEntity profile = ProfileEntity.builder()
+                .firstName(requestDTO.getFirstName())
+                .lastName(requestDTO.getLastName())
+                .account(account)
+                .build();
 
         accountRepository.save(account);
         profileRepository.save(profile);
@@ -116,16 +126,36 @@ public class AuthService {
         }
 
         GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
         String googleId = payload.getSubject();
         String email = payload.getEmail();
+
         String fullName = (String) payload.get("name");
+        String givenName = (String) payload.get("given_name");
+        String familyName = (String) payload.get("family_name");
+        String avatarUrl = (String) payload.get("picture");
+
+        NameParts parts = splitName(fullName);
+
+        String firstName = (givenName != null && !givenName.isBlank()) ? givenName : parts.firstName();
+        String lastName = (familyName != null && !familyName.isBlank()) ? familyName : parts.lastName();
 
         // find/create account
         AccountEntity account = accountRepository.findByGoogleId(googleId).orElseGet(() -> {
-            AccountEntity a = AccountEntity.builder().email(email).googleId(googleId).active(true).build();
+            AccountEntity a = AccountEntity.builder()
+                    .email(email)
+                    .googleId(googleId)
+                    .active(true)
+                    .build();
+
             a = accountRepository.save(a);
 
-            ProfileEntity p = ProfileEntity.builder().account(a).fullName(fullName).build();
+            ProfileEntity p = ProfileEntity.builder()
+                    .account(a)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .avatarUrl(avatarUrl)
+                    .build();
             profileRepository.save(p);
 
             return a;
@@ -143,6 +173,29 @@ public class AuthService {
         response.setData(dto);
         response.setSuccess(true);
         return response;
+    }
+
+
+    //=================================HELPER=================================
+    private record NameParts(String firstName, String lastName) {
+    }
+
+    private NameParts splitName(String fullName) {
+        if (fullName == null) return new NameParts(null, null);
+
+        String trimmed = fullName.trim().replaceAll("\\s+", " ");
+        if (trimmed.isEmpty()) return new NameParts(null, null);
+
+        String[] parts = trimmed.split(" ");
+        if (parts.length == 1) {
+            // chỉ có 1 từ -> coi là firstName
+            return new NameParts(parts[0], null);
+        }
+
+        // lấy từ đầu là first, phần còn lại là last (đỡ sai hơn trong nhiều trường hợp)
+        String first = parts[0];
+        String last = String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length));
+        return new NameParts(first, last);
     }
 
 }

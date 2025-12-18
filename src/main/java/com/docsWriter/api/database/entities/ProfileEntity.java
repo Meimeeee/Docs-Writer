@@ -25,8 +25,11 @@ public class ProfileEntity {
     @JoinColumn(name = "account_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private AccountEntity account;
 
-    @Column(name = "full_name", length = 120)
-    private String fullName;
+    @Column(name = "first_name", length = 120)
+    private String firstName;
+
+    @Column(name = "last_name", length = 120)
+    private String lastName;
 
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;

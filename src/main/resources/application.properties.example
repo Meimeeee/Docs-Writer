@@ -1,17 +1,33 @@
 spring.application.name=DocsWriter
 
-# Kết nối tới PostgreSQL trong Docker
+# connect to PostgreSQL in Docker
 spring.datasource.url=jdbc:postgresql://localhost:5432/docsWriter
 spring.datasource.username=
 spring.datasource.password=
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # JPA / Hibernate
-# tự động tạo và cập nhật bảng theo entity
+# auto create / update / validate / none
 spring.jpa.hibernate.ddl-auto=update
-# chỉ định dialect cho PostgreSQL: gth loại db cho Hibernate
+
+# PostgreSQL: introduce db type for Hibernate
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-# hiển thị câu lệnh SQL trong console
+
+# show query SQL in console
 spring.jpa.show-sql=true
-# định dạng câu lệnh SQL hiển thị
+# format query SQL in console
 spring.jpa.properties.hibernate.format_sql=true
+
+# swagger
+server.port=8080
+springdoc.swagger-ui.path=/swagger-ui.html
+
+# jwt
+app.security.jwt.secret=
+app.security.jwt.access-expiration-minutes=30
+app.security.jwt.refresh-expiration-days=7
+app.security.jwt.issuer=docs-writer-api
+
+#google
+app.security.google.client-id=
+

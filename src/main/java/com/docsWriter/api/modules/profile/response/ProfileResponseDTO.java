@@ -1,6 +1,6 @@
 package com.docsWriter.api.modules.profile.response;
 
-import com.docsWriter.api.database.entities.ProfileEnity;
+import com.docsWriter.api.database.entities.ProfileEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +18,7 @@ public class ProfileResponseDTO {
     private String avatarUrl;
     private String bio;
 
-    public static ProfileResponseDTO toDTO(ProfileEnity enity) {
+    public static ProfileResponseDTO toDTO(ProfileEntity enity) {
         return ProfileResponseDTO.builder()
                 .fullName(enity.getFullName())
                 .avatarUrl(enity.getAvatarUrl())

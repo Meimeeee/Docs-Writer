@@ -6,7 +6,10 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AuthenticationRepository extends JpaRepository<AccountEntity, UUID> {
+public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
     Optional<AccountEntity> findByEmailIgnoreCase(String email);
     Optional<AccountEntity> findByUsernameIgnoreCase(String username);
+    Optional<AccountEntity> findByEmailOrUsernameIgnoreCase(String email, String username);
+    Optional<AccountEntity> findByGoogleId(String googleId);
+
 }

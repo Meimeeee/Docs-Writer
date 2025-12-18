@@ -1,23 +1,29 @@
 package com.docsWriter.api.database.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "profile")
-public class ProfileEnity {
+@Builder
+public class ProfileEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "account_id", nullable = false, unique = true)
-    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @OneToOne
-    private AccountEntity accountId;
+    @JoinColumn(name = "account_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private AccountEntity account;
 
     @Column(name = "full_name", length = 120)
     private String fullName;

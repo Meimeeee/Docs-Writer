@@ -4,17 +4,12 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 
 @Entity
 @Table(name = "document")
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

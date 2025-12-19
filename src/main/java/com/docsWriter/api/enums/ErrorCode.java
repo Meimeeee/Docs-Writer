@@ -18,9 +18,7 @@ public enum ErrorCode {
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
 
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Google token"),
-
-    UPLOAD_FAILED(HttpStatus.BAD_REQUEST, "Upload failed"),
-    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "File read error");
+    CLOUDINARY_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "Cloudinary verification failed");
 
     private final HttpStatus status;
     private final String defaultMessage;

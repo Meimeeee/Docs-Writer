@@ -1,6 +1,5 @@
 package com.docsWriter.api.modules.auth.request;
 
-import com.docsWriter.api.database.entities.FileStorageEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

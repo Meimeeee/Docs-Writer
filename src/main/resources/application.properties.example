@@ -35,3 +35,9 @@ app.security.google.client-id=
 spring.servlet.multipart.enabled=true
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=20MB
+
+#cloudinary
+app.cloudinary.cloudname=
+app.cloudinary.APIkey=
+app.cloudinary.APIsecret=
+app.cloudinary.APIenvironmentvariable=CLOUDINARY_URL=

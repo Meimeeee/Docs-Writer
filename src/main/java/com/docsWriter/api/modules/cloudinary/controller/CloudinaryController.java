@@ -1,25 +1,26 @@
 package com.docsWriter.api.modules.cloudinary.controller;
 
+import com.docsWriter.api.modules.cloudinary.request.InitUploadRequestDTO;
+import com.docsWriter.api.modules.cloudinary.response.InitFileResponseDTO;
 import com.docsWriter.api.modules.cloudinary.response.InitUploadResponseDTO;
 import com.docsWriter.api.modules.cloudinary.service.CloudinaryService;
+import com.docsWriter.api.utils.BaseResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/cloudinary")
+@RequestMapping("/api/uploads")
 @RequiredArgsConstructor
 public class CloudinaryController {
 
     private final CloudinaryService cloudinaryService;
 
     @PostMapping("/init")
-    public InitUploadResponseDTO init(
-            @RequestParam(defaultValue = "image") String resourceType
+    public BaseResponse<InitUploadResponseDTO> init(
+            @Valid @RequestBody InitUploadRequestDTO dto
     ) {
-        return cloudinaryService.init(resourceType);
+        return cloudinaryService.init(dto);
     }
 
     @PostMapping("/complete")

@@ -4,7 +4,11 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.docsWriter.api.enums.ErrorCode;
 import com.docsWriter.api.exception.CustomException;
+import com.docsWriter.api.modules.cloudinary.request.InitFileRequestDTO;
+import com.docsWriter.api.modules.cloudinary.request.InitUploadRequestDTO;
+import com.docsWriter.api.modules.cloudinary.response.InitFileResponseDTO;
 import com.docsWriter.api.modules.cloudinary.response.InitUploadResponseDTO;
+import com.docsWriter.api.utils.BaseResponse;
 import com.docsWriter.api.utils.CloudinarySign;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,30 +37,28 @@ public class CloudinaryService {
     @Value("${app.cloudinary.API-secret}")
     private String apiSecret;
 
+    @Value("${app.cloudinary.upload-folder:uploads}")
+    private String baseFolder;
 
-    public InitUploadResponseDTO init(String resourceType) {
+    //    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;   // 5MB
+    private static final long MAX_PDF_SIZE = 10L * 1024 * 1024;  // 10MB
+
+    public BaseResponse<InitUploadResponseDTO> init(InitUploadRequestDTO dto) {
         long ts = Instant.now().getEpochSecond();
-        String publicId = "u_" + UUID.randomUUID();
-
-        Map<String, String> paramToSign = new HashMap<>();
-        paramToSign.put("ts", String.valueOf(ts));
-        paramToSign.put("public_id", publicId);
-
-        String signature = CloudinarySign.sign(paramToSign, apiSecret);
+        String folder = baseFolder;
         String uploadUrl =
                 "http://api.cloudinary.com/"
                         + cloudName
-                        + "/" + resourceType
-                        + "/upload";
+                        + folder;
 
-        return new InitUploadResponseDTO(
-                UUID.randomUUID().toString(),
-                uploadUrl,
-                apiKey,
-                ts,
-                publicId,
-                signature
-        );
+        List<InitFileResponseDTO> files = dto.getFiles().stream()
+                .map(file -> initOne(uploadUrl, folder, ts, file))
+                .toList();
+
+        InitUploadResponseDTO init = new InitUploadResponseDTO(files);
+
+        return BaseResponse.success(init);
     }
 
     public void complete(String publicId, String resourceType) {
@@ -67,6 +70,52 @@ public class CloudinaryService {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.CLOUDINARY_VERIFICATION_FAILED);
         }
+    }
+
+
+    //    ================================HELPER================================
+    private InitFileResponseDTO initOne(String uploadUrl, String folder, long timestamp, InitFileRequestDTO f) {
+        validateFile(f);
+
+        String publicId = UUID.randomUUID().toString();
+
+        Map<String, String> paramsToSign = new HashMap<>();
+        paramsToSign.put("timestamp", String.valueOf(timestamp));
+        paramsToSign.put("folder", folder);
+        paramsToSign.put("public_id", publicId);
+
+        String signature = CloudinarySign.sign(paramsToSign, apiSecret);
+
+        return new InitFileResponseDTO(
+                publicId,
+                f.getFilename(),
+                uploadUrl,
+                apiKey,
+                timestamp,
+                folder,
+                signature
+        );
+    }
+
+    private void validateFile(InitFileRequestDTO f) {
+        String ext = getExtension(f.getFilename());
+
+        long maxSize = switch (ext) {
+            case "jpg", "jpeg", "png", "webp", "gif" -> MAX_IMAGE_SIZE;
+            case "pdf" -> MAX_PDF_SIZE;
+            default -> throw new IllegalArgumentException("Unsupported file type: " + f.getFilename());
+        };
+
+        if (f.getSize() > maxSize) {
+            throw new IllegalArgumentException("File too large: " + f.getFilename());
+        }
+    }
+
+    private String getExtension(String filename) {
+        int i = filename.lastIndexOf('.');
+        return (i > 0 && i < filename.length() - 1)
+                ? filename.substring(i + 1).toLowerCase()
+                : "";
     }
 
 }

@@ -2,14 +2,13 @@ package com.docsWriter.api.modules.cloudinary.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class InitUploadResponseDTO {
-    String sessionId;
-    String uploadUrl;
-    String apiKey;
-    long timestamp;
-    String publicId;
-    String signature;
+    List<InitFileResponseDTO> files;
 }

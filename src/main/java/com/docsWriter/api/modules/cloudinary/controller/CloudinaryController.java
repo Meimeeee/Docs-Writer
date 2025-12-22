@@ -23,13 +23,6 @@ public class CloudinaryController {
         return cloudinaryService.init(dto);
     }
 
-    @PostMapping("/complete")
-    public void complete(
-            @RequestParam String publicId,
-            @RequestParam(defaultValue = "image") String resourceType
-    ) {
-        cloudinaryService.complete(publicId, resourceType);
-    }
 
 
 }

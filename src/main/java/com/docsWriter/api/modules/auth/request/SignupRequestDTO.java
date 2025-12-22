@@ -23,5 +23,4 @@ public class SignupRequestDTO {
     private String pass;
     @NotBlank(message = "Full name is required !")
     private String fullName;
-    private String avatarUrl;
 }

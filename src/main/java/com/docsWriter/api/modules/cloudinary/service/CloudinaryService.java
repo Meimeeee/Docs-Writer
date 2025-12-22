@@ -1,15 +1,11 @@
 package com.docsWriter.api.modules.cloudinary.service;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import com.docsWriter.api.enums.ErrorCode;
-import com.docsWriter.api.exception.CustomException;
 import com.docsWriter.api.modules.cloudinary.request.InitFileRequestDTO;
 import com.docsWriter.api.modules.cloudinary.request.InitUploadRequestDTO;
 import com.docsWriter.api.modules.cloudinary.response.InitFileResponseDTO;
 import com.docsWriter.api.modules.cloudinary.response.InitUploadResponseDTO;
 import com.docsWriter.api.utils.BaseResponse;
-import com.docsWriter.api.utils.CloudinarySign;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +36,10 @@ public class CloudinaryService {
     @Value("${app.cloudinary.upload-folder:uploads}")
     private String baseFolder;
 
+    @Value(("${app.cloudinary.api-base-url}"))
+    private String apiBaseUrl;
+
+
     //    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     private static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;   // 5MB
     private static final long MAX_PDF_SIZE = 10L * 1024 * 1024;  // 10MB
@@ -47,29 +47,13 @@ public class CloudinaryService {
     public BaseResponse<InitUploadResponseDTO> init(InitUploadRequestDTO dto) {
         long ts = Instant.now().getEpochSecond();
         String folder = baseFolder;
-        String uploadUrl =
-                "http://api.cloudinary.com/"
-                        + cloudName
-                        + folder;
+        String uploadUrl = apiBaseUrl + cloudName + folder;
 
-        List<InitFileResponseDTO> files = dto.getFiles().stream()
-                .map(file -> initOne(uploadUrl, folder, ts, file))
-                .toList();
+        List<InitFileResponseDTO> files = dto.getFiles().stream().map(file -> initOne(uploadUrl, folder, ts, file)).toList();
 
         InitUploadResponseDTO init = new InitUploadResponseDTO(files);
 
         return BaseResponse.success(init);
-    }
-
-    public void complete(String publicId, String resourceType) {
-        try {
-            cloudinary.api().resource(
-                    publicId,
-                    ObjectUtils.asMap("resource_type", resourceType)
-            );
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.CLOUDINARY_VERIFICATION_FAILED);
-        }
     }
 
 
@@ -79,22 +63,14 @@ public class CloudinaryService {
 
         String publicId = UUID.randomUUID().toString();
 
-        Map<String, String> paramsToSign = new HashMap<>();
+        Map<String, Object> paramsToSign = new HashMap<>();
         paramsToSign.put("timestamp", String.valueOf(timestamp));
         paramsToSign.put("folder", folder);
         paramsToSign.put("public_id", publicId);
 
-        String signature = CloudinarySign.sign(paramsToSign, apiSecret);
+        String signature = cloudinary.apiSignRequest(paramsToSign, apiSecret);
 
-        return new InitFileResponseDTO(
-                publicId,
-                f.getFilename(),
-                uploadUrl,
-                apiKey,
-                timestamp,
-                folder,
-                signature
-        );
+        return new InitFileResponseDTO(publicId, f.getFilename(), uploadUrl, apiKey, timestamp, folder, signature);
     }
 
     private void validateFile(InitFileRequestDTO f) {
@@ -113,9 +89,7 @@ public class CloudinaryService {
 
     private String getExtension(String filename) {
         int i = filename.lastIndexOf('.');
-        return (i > 0 && i < filename.length() - 1)
-                ? filename.substring(i + 1).toLowerCase()
-                : "";
+        return (i > 0 && i < filename.length() - 1) ? filename.substring(i + 1).toLowerCase() : "";
     }
 
 }

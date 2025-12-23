@@ -21,6 +21,13 @@ public class BaseResponse<T> {
     private Map<String, List<String>> fieldErrors;
     private LocalDateTime timestamp;
 
+    public static <T> BaseResponse<T> success() {
+        return BaseResponse.<T>builder()
+                .status(200)
+                .success(true)
+                .build();
+    }
+
     public static <T> BaseResponse<T> success(T data) {
         return BaseResponse.<T>builder()
                 .status(200)

@@ -53,3 +53,9 @@ app.security.jwt.issuer=my-app
 * `JwtAuthenticationFilter` – bridge between JWT & Spring Security
 
 ### Google OAuth
+* Log in (https://console.cloud.google.com/)
+* create project
+* In Clients update `Authorized JavaScript origins`
+![alt text](image.png)
+* Set up in `application.properties`
+* Create `AuthService`

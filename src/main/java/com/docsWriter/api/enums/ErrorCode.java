@@ -18,7 +18,11 @@ public enum ErrorCode {
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
 
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Google token"),
-    CLOUDINARY_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "Cloudinary verification failed");
+    UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Unauthenticated"),
+    INVALID_AUTHENTICATION_PRINCIPLE(HttpStatus.UNAUTHORIZED, "Invalid authentication principal"),
+    INVALID_OTP(HttpStatus.BAD_REQUEST, "Invalid OTP"),
+    INVALID_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "Wrong old password");
+
 
     private final HttpStatus status;
     private final String defaultMessage;

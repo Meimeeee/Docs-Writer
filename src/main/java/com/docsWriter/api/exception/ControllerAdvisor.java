@@ -134,6 +134,19 @@ public class ControllerAdvisor {
         );
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<BaseResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Illegal argument: {}", ex.getMessage());
+
+        return build(
+                ErrorCode.VALIDATION_ERROR.getStatus().value(), // 400
+                false,
+                ex.getMessage(),
+                null,
+                null
+        );
+    }
+
     // ───────── 6. Các lỗi còn lại (500) ─────────
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<Object>> handleOtherException(Exception ex) {
@@ -148,19 +161,5 @@ public class ControllerAdvisor {
         );
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<BaseResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity
-                .badRequest()
-                .body(BaseResponse.failure(400, ex.getMessage()));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse<Object>> handleUnexpected(Exception ex) {
-        // log ex
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.failure(500, "Internal server error"));
-    }
 
 }

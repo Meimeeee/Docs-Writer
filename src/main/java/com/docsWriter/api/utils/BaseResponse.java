@@ -51,4 +51,12 @@ public class BaseResponse<T> {
                 .message(message)
                 .build();
     }
+
+    public static <T> BaseResponse<T> failure(int status, String message) {
+        return BaseResponse.<T>builder()
+                .status(status)
+                .success(false)
+                .message(message)
+                .build();
+    }
 }

@@ -33,7 +33,7 @@ public class CloudinaryService {
     @Value("${app.cloudinary.API-secret}")
     private String apiSecret;
 
-    @Value("${app.cloudinary.upload-folder:uploads}")
+    @Value("${app.cloudinary.upload-folder}")
     private String baseFolder;
 
     @Value(("${app.cloudinary.api-base-url}"))
@@ -46,11 +46,8 @@ public class CloudinaryService {
 
     public BaseResponse<InitUploadResponseDTO> init(InitUploadRequestDTO dto) {
         long ts = Instant.now().getEpochSecond();
-        String folder = baseFolder;
-        String uploadUrl = apiBaseUrl + cloudName + folder;
-
-        List<InitFileResponseDTO> files = dto.getFiles().stream().map(file -> initOne(uploadUrl, folder, ts, file)).toList();
-
+        String uploadUrl = apiBaseUrl + cloudName + baseFolder;
+        List<InitFileResponseDTO> files = dto.getFiles().stream().map(file -> initOne(uploadUrl, baseFolder, ts, file)).toList();
         InitUploadResponseDTO init = new InitUploadResponseDTO(files);
 
         return BaseResponse.success(init);

@@ -1,7 +1,6 @@
 package com.docsWriter.api.modules.cloudinary.controller;
 
 import com.docsWriter.api.modules.cloudinary.request.InitUploadRequestDTO;
-import com.docsWriter.api.modules.cloudinary.response.InitFileResponseDTO;
 import com.docsWriter.api.modules.cloudinary.response.InitUploadResponseDTO;
 import com.docsWriter.api.modules.cloudinary.service.CloudinaryService;
 import com.docsWriter.api.utils.BaseResponse;

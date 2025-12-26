@@ -21,6 +21,13 @@ public class BaseResponse<T> {
     private Map<String, List<String>> fieldErrors;
     private LocalDateTime timestamp;
 
+    public static <T> BaseResponse<T> success() {
+        return BaseResponse.<T>builder()
+                .status(200)
+                .success(true)
+                .build();
+    }
+
     public static <T> BaseResponse<T> success(T data) {
         return BaseResponse.<T>builder()
                 .status(200)
@@ -40,6 +47,14 @@ public class BaseResponse<T> {
 
     public static <T> BaseResponse<T> failure(String message) {
         return BaseResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .build();
+    }
+
+    public static <T> BaseResponse<T> failure(int status, String message) {
+        return BaseResponse.<T>builder()
+                .status(status)
                 .success(false)
                 .message(message)
                 .build();

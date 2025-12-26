@@ -53,6 +53,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/api-docs/**",
                                 "/api/auth/**")
                         .permitAll()
+
+                        .requestMatchers("/api/uploads/**").authenticated()
+
+
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

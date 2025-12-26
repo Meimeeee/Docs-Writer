@@ -3,12 +3,18 @@ package com.docsWriter.api.modules.auth.service;
 import com.docsWriter.api.database.entities.AccountEntity;
 import com.docsWriter.api.database.entities.ProfileEntity;
 import com.docsWriter.api.database.repositories.AccountRepository;
+import com.docsWriter.api.database.repositories.OtpRepository;
 import com.docsWriter.api.database.repositories.ProfileRepository;
 import com.docsWriter.api.enums.ErrorCode;
+import com.docsWriter.api.enums.OtpPurpose;
 import com.docsWriter.api.exception.CustomException;
 import com.docsWriter.api.modules.auth.request.LoginRequestDTO;
 import com.docsWriter.api.modules.auth.request.SignupRequestDTO;
+import com.docsWriter.api.modules.auth.request.UpdatePasswordRequestDTO;
+import com.docsWriter.api.modules.auth.request.UpdateProfileRequestDTO;
 import com.docsWriter.api.modules.auth.response.AuthResponseDTO;
+import com.docsWriter.api.modules.otp.request.ResetPasswordRequestDTO;
+import com.docsWriter.api.modules.otp.service.OtpService;
 import com.docsWriter.api.utils.BaseResponse;
 import com.docsWriter.api.utils.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -17,6 +23,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +40,7 @@ public class AuthService {
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final OtpService otpService;
 
     @Value("${app.security.google.client-id}")
     private String googleClientId;
@@ -53,9 +62,18 @@ public class AuthService {
             });
         }
 
-        AccountEntity account = AccountEntity.builder().email(requestDTO.getEmail()).username(requestDTO.getUsername()).password(passwordEncoder.encode(requestDTO.getPass())).build();
+        AccountEntity account = AccountEntity.builder()
+                .email(requestDTO.getEmail())
+                .username(requestDTO.getUsername())
+                .password(passwordEncoder.encode(requestDTO.getPass()))
+                .active(true)
+                .build();
 
-        ProfileEntity profile = ProfileEntity.builder().fullName(requestDTO.getFullName()).account(account).build();
+        ProfileEntity profile = ProfileEntity.builder()
+                .firstName(requestDTO.getFirstName())
+                .lastName(requestDTO.getLastName())
+                .account(account)
+                .build();
 
         accountRepository.save(account);
         profileRepository.save(profile);
@@ -116,16 +134,36 @@ public class AuthService {
         }
 
         GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
         String googleId = payload.getSubject();
         String email = payload.getEmail();
+
         String fullName = (String) payload.get("name");
+        String givenName = (String) payload.get("given_name");
+        String familyName = (String) payload.get("family_name");
+        String avatarUrl = (String) payload.get("picture");
+
+        NameParts parts = splitName(fullName);
+
+        String firstName = (givenName != null && !givenName.isBlank()) ? givenName : parts.firstName();
+        String lastName = (familyName != null && !familyName.isBlank()) ? familyName : parts.lastName();
 
         // find/create account
         AccountEntity account = accountRepository.findByGoogleId(googleId).orElseGet(() -> {
-            AccountEntity a = AccountEntity.builder().email(email).googleId(googleId).active(true).build();
+            AccountEntity a = AccountEntity.builder()
+                    .email(email)
+                    .googleId(googleId)
+                    .active(true)
+                    .build();
+
             a = accountRepository.save(a);
 
-            ProfileEntity p = ProfileEntity.builder().account(a).fullName(fullName).build();
+            ProfileEntity p = ProfileEntity.builder()
+                    .account(a)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .avatarUrl(avatarUrl)
+                    .build();
             profileRepository.save(p);
 
             return a;
@@ -142,7 +180,88 @@ public class AuthService {
         response.setMessage("OK");
         response.setData(dto);
         response.setSuccess(true);
-        return response;
+        return BaseResponse.success("OK", dto);
+    }
+
+    public AccountEntity getCurrentAccount() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof AccountEntity account) return account;
+        throw new CustomException(ErrorCode.INVALID_AUTHENTICATION_PRINCIPLE);
+    }
+
+    public BaseResponse<Void> updateAccount(UpdateProfileRequestDTO dto) {
+        AccountEntity account = getCurrentAccount();
+        if (account == null) throw new CustomException(ErrorCode.UNAUTHENTICATED);
+
+        ProfileEntity profile = profileRepository.findByAccountId(account.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.PROFILE_NOT_FOUND));
+
+        if (!(dto.getFirstName().isEmpty()) && !(dto.getFirstName().isBlank())) {
+            profile.setFirstName(dto.getFirstName());
+        }
+
+        if (!(dto.getLastName().isEmpty()) && !(dto.getLastName().isBlank())) {
+            profile.setLastName(dto.getLastName());
+        }
+
+        profileRepository.save(profile);
+
+        return BaseResponse.success();
+    }
+
+    //forget pass
+    public BaseResponse<Void> resetPassword(ResetPasswordRequestDTO dto) {
+        otpService.verifyOtp(dto.getEmail(), OtpPurpose.RESET_PASSWORD, dto.getOtp());
+
+        AccountEntity account = accountRepository.findByEmailIgnoreCase(dto.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        account.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        accountRepository.save(account);
+
+        return BaseResponse.success();
+    }
+
+    //change pass
+    public BaseResponse<Void> updatePassword(UpdatePasswordRequestDTO dto) {
+        AccountEntity account = getCurrentAccount();
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), account.getPassword()))
+            throw new CustomException(ErrorCode.INVALID_OLD_PASSWORD);
+
+        account.setPassword(dto.getNewPassword());
+        accountRepository.save(account);
+
+        return BaseResponse.success();
+    }
+
+    //=================================HELPER=================================
+    private record NameParts(String firstName, String lastName) {
+    }
+
+    private NameParts splitName(String fullName) {
+        if (fullName == null) return new NameParts(null, null);
+
+        String trimmed = fullName.trim().replaceAll("\\s+", " ");
+        if (trimmed.isEmpty()) return new NameParts(null, null);
+
+        String[] parts = trimmed.split(" ");
+        if (parts.length == 1) {
+            // chỉ có 1 từ -> coi là firstName
+            return new NameParts(parts[0], null);
+        }
+
+        // lấy từ đầu là first, phần còn lại là last (đỡ sai hơn trong nhiều trường hợp)
+        String first = parts[0];
+        String last = String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length));
+        return new NameParts(first, last);
     }
 
 }

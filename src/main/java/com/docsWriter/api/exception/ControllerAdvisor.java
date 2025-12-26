@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -133,6 +134,19 @@ public class ControllerAdvisor {
         );
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<BaseResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Illegal argument: {}", ex.getMessage());
+
+        return build(
+                ErrorCode.VALIDATION_ERROR.getStatus().value(), // 400
+                false,
+                ex.getMessage(),
+                null,
+                null
+        );
+    }
+
     // ───────── 6. Các lỗi còn lại (500) ─────────
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<Object>> handleOtherException(Exception ex) {
@@ -146,5 +160,6 @@ public class ControllerAdvisor {
                 null
         );
     }
+
 
 }

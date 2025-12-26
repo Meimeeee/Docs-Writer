@@ -14,13 +14,15 @@ import java.util.UUID;
 @Builder
 public class ProfileResponseDTO {
     private UUID id;
-    private String fullName;
+    private String firstName;
+    private String lastName;
     private String avatarUrl;
     private String bio;
 
     public static ProfileResponseDTO toDTO(ProfileEntity enity) {
         return ProfileResponseDTO.builder()
-                .fullName(enity.getFullName())
+                .firstName(enity.getFirstName())
+                .lastName(enity.getLastName())
                 .avatarUrl(enity.getAvatarUrl())
                 .bio(enity.getBio())
                 .build();

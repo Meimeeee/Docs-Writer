@@ -7,7 +7,6 @@ import lombok.Data;
 @Data
 public class CreateFolderRequestDTO {
 
-    @NotBlank(message = "name is required")
     @Size(max = 160, message = "name must be <= 160 characters")
     private String name;
 

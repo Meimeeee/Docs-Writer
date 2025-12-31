@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
     Optional<AccountEntity> findByEmailIgnoreCase(String email);
     Optional<AccountEntity> findByUsernameIgnoreCase(String username);
-    Optional<AccountEntity> findByEmailOrUsernameIgnoreCase(String email, String username);
+    Optional<AccountEntity> findByUsernameIgnoreCaseOrEmailIgnoreCase(String username, String email);
     Optional<AccountEntity> findByGoogleId(String googleId);
+
 
 }

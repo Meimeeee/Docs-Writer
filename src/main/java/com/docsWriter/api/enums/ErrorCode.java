@@ -11,6 +11,7 @@ public enum ErrorCode {
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Invalid password"),
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Profile not found"),
     FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND, "Folder not found"),
+    DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Document not found"),
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Validation error"),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "Access denied"),

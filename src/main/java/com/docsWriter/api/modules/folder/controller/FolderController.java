@@ -25,7 +25,7 @@ public class FolderController {
 
     private final FolderService folderService;
 
-    @PostMapping
+    @PostMapping("/")
     public BaseResponse<FolderResponseDTO> createFolder(
             @Valid @RequestBody CreateFolderRequestDTO dto
     ) {

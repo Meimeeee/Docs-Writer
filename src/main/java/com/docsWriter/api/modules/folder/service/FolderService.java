@@ -69,7 +69,7 @@ public class FolderService {
     @Transactional
     public BaseResponse<FolderResponseDTO> updateFolder(UUID folderId, UpdateFolderRequestDTO dto) {
         AccountEntity owner = authService.getCurrentAccount();
-        FolderEntity folder = getFolderOrThrow(folderId, owner.getId());
+        FolderEntity folder = getFolder(folderId, owner.getId());
 
         if (dto.getName() != null) {
             String normalizedName = dto.getName().trim();
@@ -96,7 +96,7 @@ public class FolderService {
     @Transactional
     public BaseResponse<Void> deleteFolder(UUID folderId) {
         AccountEntity owner = authService.getCurrentAccount();
-        FolderEntity folder = getFolderOrThrow(folderId, owner.getId());
+        FolderEntity folder = getFolder(folderId, owner.getId());
 
         List<DocumentEntity> documents = documentRepository.findAllByOwnerIdAndFolderId(owner.getId(), folder.getId());
         if (!documents.isEmpty()) {
@@ -108,7 +108,9 @@ public class FolderService {
         return BaseResponse.success();
     }
 
-    private FolderEntity getFolderOrThrow(UUID folderId, UUID ownerId) {
+
+    //=======================HELPER=======================
+    private FolderEntity getFolder(UUID folderId, UUID ownerId) {
         return folderRepository.findByIdAndOwnerId(folderId, ownerId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FOLDER_NOT_FOUND));
     }

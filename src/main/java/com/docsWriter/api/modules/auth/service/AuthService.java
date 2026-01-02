@@ -93,12 +93,10 @@ public class AuthService {
 
     public BaseResponse<AuthResponseDTO> login(LoginRequestDTO requestDTO) {
 
-        if (requestDTO.getUsername() == null || requestDTO.getUsername().isBlank())
-            throw new CustomException(ErrorCode.VALIDATION_ERROR, "username is required");
-        if (requestDTO.getPass() == null || requestDTO.getPass().isBlank())
-            throw new CustomException(ErrorCode.VALIDATION_ERROR, "password is required");
+       String s = requestDTO.getUsername().trim();
 
-        AccountEntity account = accountRepository.findByUsernameIgnoreCase(requestDTO.getUsername()).orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        AccountEntity account = accountRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase(s, s)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
 
         if (!account.isActive()) throw new CustomException(ErrorCode.ACCOUNT_INACTIVE);
 
@@ -122,7 +120,8 @@ public class AuthService {
     }
 
     public BaseResponse<AuthResponseDTO> loginWithGoogle(String idTokenString) {
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance()).setAudience(Collections.singletonList(googleClientId)).build();
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),
+                JacksonFactory.getDefaultInstance()).setAudience(Collections.singletonList(googleClientId)).build();
 
         GoogleIdToken googleIdToken;
         try {

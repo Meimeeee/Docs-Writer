@@ -59,3 +59,7 @@ app.security.jwt.issuer=my-app
 ![alt text](image.png)
 * Set up in `application.properties`
 * Create `AuthService`
+
+### Cloudinary
+* Add dependencies
+* Set up in `application.properties`

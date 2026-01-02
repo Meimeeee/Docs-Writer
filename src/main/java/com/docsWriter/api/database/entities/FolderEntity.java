@@ -1,42 +1,36 @@
 package com.docsWriter.api.database.entities;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.util.UUID;
-
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "document")
+@Table(name = "folder")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class DocumentEntity {
+public class FolderEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 160)
-    private String title;
-
-    @Column(length = 400)
-    private String description;
-
-    @Lob
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
-
-    @ManyToOne
-    @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "owner_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private AccountEntity owner;
 
-    @ManyToOne
-    @JoinColumn(name = "folder_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private FolderEntity folder;
+    @Column(nullable = false, length = 160)
+    private String name;
+
+    @Column(length = 500)
+    private String description;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

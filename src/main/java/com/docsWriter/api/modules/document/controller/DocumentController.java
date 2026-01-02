@@ -44,7 +44,7 @@ public class DocumentController {
     public BaseResponse<DocumentResponseDTO> getDocument(
             @PathVariable UUID documentId
     ) {
-        return documentService.getDocument(documentId);
+        return documentService.getDocumentById(documentId);
     }
 
     @PatchMapping("/{documentId}")
